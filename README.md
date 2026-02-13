@@ -21,6 +21,10 @@ A Discord bot for managing World of Warcraft guild raid rosters. Replace your Go
 
 ## Installation
 
+For a quick 5-minute setup, see the [Quick Start Guide](QUICKSTART.md).
+
+For detailed installation instructions, follow these steps:
+
 ### 1. Clone the Repository
 
 ```bash
@@ -96,7 +100,7 @@ The bot will:
 
 ## Command Reference
 
-For a complete list of commands and usage examples, see the [Commands Documentation](docs/COMMANDS.md).
+For a complete list of commands with examples and workflows, see the [Usage Guide](USAGE.md).
 
 ### Quick Command Overview
 
@@ -128,7 +132,7 @@ The bot uses SQLite with four main tables:
 - **raids**: Raid event information
 - **roster_assignments**: Player assignments to raids
 
-For detailed schema information, see [Database Documentation](docs/DATABASE.md).
+For detailed schema information, see the database schema in [database/init.sql](database/init.sql).
 
 ## Troubleshooting
 
