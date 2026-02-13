@@ -233,9 +233,12 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
     # Grid rows needed (at least 4 rows, or enough for the largest roster)
     grid_rows = max(4, (max_roster_size + ROSTER_GRID_COLS - 1) // ROSTER_GRID_COLS)
     
+    # Total rows needed is the maximum of players or grid rows
+    total_rows = max(num_players, grid_rows)
+    
     # Image dimensions
     total_width = PLAYER_STATS_WIDTH + (num_raids * RAID_COL_WIDTH) + PADDING * 2
-    total_height = HEADER_HEIGHT + (grid_rows * ROSTER_GRID_CELL_HEIGHT) + PADDING * 2
+    total_height = HEADER_HEIGHT + (total_rows * ROSTER_GRID_CELL_HEIGHT) + PADDING * 2
     
     # Create image with light gray background
     img = Image.new('RGB', (total_width, total_height), color=BACKGROUND_COLOR)
@@ -278,11 +281,7 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
     # --- PLAYER STATS ROWS (LEFT SIDEBAR) ---
     y_offset += HEADER_HEIGHT
     
-    for i, player in enumerate(all_players):
-        # Only draw as many rows as we have grid space
-        if i >= grid_rows:
-            break
-            
+    for player in all_players:
         x_offset = PADDING
         
         # Player name (yellow background)
@@ -302,6 +301,19 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
         draw_bordered_cell(draw, x_offset, y_offset, BENCHES_COUNT_COL_WIDTH, PLAYER_ROW_HEIGHT,
                           benches_text, GREEN_BG, TEXT_COLOR, stats_font)
         
+        y_offset += PLAYER_ROW_HEIGHT
+    
+    # Fill remaining rows if grid_rows > num_players (empty cells)
+    for i in range(num_players, total_rows):
+        x_offset = PADDING
+        draw_bordered_cell(draw, x_offset, y_offset, PLAYER_NAME_COL_WIDTH, PLAYER_ROW_HEIGHT,
+                          "", YELLOW_BG, TEXT_COLOR, name_font)
+        x_offset += PLAYER_NAME_COL_WIDTH
+        draw_bordered_cell(draw, x_offset, y_offset, RAIDS_COUNT_COL_WIDTH, PLAYER_ROW_HEIGHT,
+                          "", YELLOW_BG, TEXT_COLOR, stats_font)
+        x_offset += RAIDS_COUNT_COL_WIDTH
+        draw_bordered_cell(draw, x_offset, y_offset, BENCHES_COUNT_COL_WIDTH, PLAYER_ROW_HEIGHT,
+                          "", GREEN_BG, TEXT_COLOR, stats_font)
         y_offset += PLAYER_ROW_HEIGHT
     
     # --- RAID COLUMNS ---
@@ -325,7 +337,7 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
         grid_x = x_offset
         grid_y = y_offset
         
-        for row_idx in range(grid_rows):
+        for row_idx in range(total_rows):
             for col_idx in range(ROSTER_GRID_COLS):
                 cell_x = grid_x + (col_idx * ROSTER_GRID_CELL_WIDTH)
                 cell_y = grid_y + (row_idx * ROSTER_GRID_CELL_HEIGHT)
@@ -356,14 +368,14 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
         draw_bordered_cell(draw, absence_x, side_panel_y, ABSENCES_COL_WIDTH, ROSTER_GRID_CELL_HEIGHT,
                           "absences", WHITE_BG, TEXT_COLOR, cell_font)
         
-        for idx, (assignment, player, class_name) in enumerate(absent_roster[:grid_rows - 1]):
+        for idx, (assignment, player, class_name) in enumerate(absent_roster[:total_rows - 1]):
             cell_y = side_panel_y + ((idx + 1) * ROSTER_GRID_CELL_HEIGHT)
             player_name = truncate_text(player.player_name, ABSENCES_COL_WIDTH - PADDING, cell_font, draw)
             draw_bordered_cell(draw, absence_x, cell_y, ABSENCES_COL_WIDTH, ROSTER_GRID_CELL_HEIGHT,
                              player_name, WHITE_BG, TEXT_COLOR, cell_font)
         
         # Fill remaining absence cells
-        for idx in range(len(absent_roster), grid_rows - 1):
+        for idx in range(len(absent_roster), total_rows - 1):
             cell_y = side_panel_y + ((idx + 1) * ROSTER_GRID_CELL_HEIGHT)
             draw_bordered_cell(draw, absence_x, cell_y, ABSENCES_COL_WIDTH, ROSTER_GRID_CELL_HEIGHT,
                              "", WHITE_BG, TEXT_COLOR, cell_font)
@@ -373,7 +385,7 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
         draw_bordered_cell(draw, bench_x, side_panel_y, BENCHES_COL_WIDTH, ROSTER_GRID_CELL_HEIGHT,
                           "benches:", WHITE_BG, TEXT_COLOR, cell_font)
         
-        for idx, (assignment, player, class_name) in enumerate(bench_roster[:grid_rows - 1]):
+        for idx, (assignment, player, class_name) in enumerate(bench_roster[:total_rows - 1]):
             cell_y = side_panel_y + ((idx + 1) * ROSTER_GRID_CELL_HEIGHT)
             bg_color = get_player_class_color(class_name)
             char_name = truncate_text(assignment.character_name, BENCHES_COL_WIDTH - PADDING, cell_font, draw)
@@ -381,7 +393,7 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
                              char_name, bg_color, TEXT_COLOR, cell_font)
         
         # Fill remaining bench cells
-        for idx in range(len(bench_roster), grid_rows - 1):
+        for idx in range(len(bench_roster), total_rows - 1):
             cell_y = side_panel_y + ((idx + 1) * ROSTER_GRID_CELL_HEIGHT)
             draw_bordered_cell(draw, bench_x, cell_y, BENCHES_COL_WIDTH, ROSTER_GRID_CELL_HEIGHT,
                              "", WHITE_BG, TEXT_COLOR, cell_font)
@@ -396,7 +408,7 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
         draw_bordered_cell(draw, swap_x + swap_col_width, side_panel_y, swap_col_width, ROSTER_GRID_CELL_HEIGHT,
                           "swaps in:", WHITE_BG, TEXT_COLOR, cell_font)
         
-        for idx, (assignment, player, class_name) in enumerate(swap_roster[:grid_rows - 1]):
+        for idx, (assignment, player, class_name) in enumerate(swap_roster[:total_rows - 1]):
             cell_y = side_panel_y + ((idx + 1) * ROSTER_GRID_CELL_HEIGHT)
             bg_color = get_player_class_color(class_name)
             char_name = truncate_text(assignment.character_name, swap_col_width - PADDING, cell_font, draw)
@@ -409,7 +421,7 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
                              "", WHITE_BG, TEXT_COLOR, cell_font)
         
         # Fill remaining swap cells
-        for idx in range(len(swap_roster), grid_rows - 1):
+        for idx in range(len(swap_roster), total_rows - 1):
             cell_y = side_panel_y + ((idx + 1) * ROSTER_GRID_CELL_HEIGHT)
             draw_bordered_cell(draw, swap_x, cell_y, swap_col_width, ROSTER_GRID_CELL_HEIGHT,
                              "", WHITE_BG, TEXT_COLOR, cell_font)
