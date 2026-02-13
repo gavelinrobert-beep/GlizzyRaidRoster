@@ -51,10 +51,11 @@ class RaidRosterBot(commands.Bot):
         
         # Load command cogs
         try:
-            from commands import player, roster, stats
+            from commands import player, roster, stats, swap
             await player.setup(self, self.db)
             await roster.setup(self, self.db)
             await stats.setup(self, self.db)
+            await swap.setup(self, self.db)
             logger.info("All command cogs loaded")
         except Exception as e:
             logger.error(f"Failed to load command cogs: {e}")

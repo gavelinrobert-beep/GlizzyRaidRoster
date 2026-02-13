@@ -7,8 +7,10 @@ A Discord bot for managing World of Warcraft guild raid rosters. Replace your Go
 - **Slash Commands**: Modern Discord interactions for all bot operations
 - **Player Management**: Register players, add characters with WoW classes and roles
 - **Roster Management**: Create raids, assign players, manage benches and absences
+- **Visual Roster Calendar**: Generate beautiful image-based roster calendars showing multiple upcoming raids
+- **Swap Request System**: Player-initiated swap requests between main roster and bench
 - **Statistics Tracking**: Track raids rostered, benches, and guild-wide statistics
-- **Color-Coded Displays**: Beautiful embeds matching WoW class colors
+- **Color-Coded Displays**: Beautiful embeds and images matching WoW class colors
 - **Flexible Date Input**: Support for various date formats (YYYY-MM-DD, DD/MM/YYYY, "19th Feb", etc.)
 - **Permission System**: Role-based access control for roster modifications
 - **SQLite Database**: Persistent data storage with automatic backups
@@ -119,6 +121,16 @@ For a complete list of commands with examples and workflows, see the [Usage Guid
 - `/roster_swap` - Record a swap between players
 - `/roster_view` - Display raid roster
 - `/roster_list` - List all raids
+- `/roster_calendar` - Generate visual roster calendar image
+
+**Swap Requests:**
+- `/swap_request` - Request to swap out of main roster
+- `/swap_accept` - Accept a swap request (bench players)
+- `/swap_list` - View all pending swap requests
+- `/swap_approve` - Approve a swap (officers)
+- `/swap_deny` - Deny a swap request (officers)
+- `/swap_cancel` - Cancel a swap request
+- `/swap_status` - View your active swap requests
 
 **Statistics:**
 - `/stats_player` - Player statistics
@@ -126,11 +138,12 @@ For a complete list of commands with examples and workflows, see the [Usage Guid
 
 ## Database Schema
 
-The bot uses SQLite with four main tables:
+The bot uses SQLite with five main tables:
 - **players**: Player information and statistics
 - **characters**: Character data linked to players
 - **raids**: Raid event information
 - **roster_assignments**: Player assignments to raids
+- **swap_requests**: Swap request tracking and history
 
 For detailed schema information, see the database schema in [database/init.sql](database/init.sql).
 
@@ -173,3 +186,4 @@ Built with:
 - [aiosqlite](https://github.com/omnilib/aiosqlite) - Async SQLite
 - [python-dateutil](https://github.com/dateutil/dateutil) - Date parsing
 - [python-dotenv](https://github.com/theskumar/python-dotenv) - Environment management
+- [Pillow](https://github.com/python-pillow/Pillow) - Image generation for roster calendar

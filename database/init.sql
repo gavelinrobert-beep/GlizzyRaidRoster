@@ -42,9 +42,26 @@ CREATE TABLE IF NOT EXISTS roster_assignments (
     UNIQUE(raid_id, player_id)
 );
 
+-- Swap requests table: Stores swap requests between rostered and bench players
+CREATE TABLE IF NOT EXISTS swap_requests (
+    request_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    raid_id INTEGER NOT NULL,
+    requesting_player_id INTEGER NOT NULL,
+    accepting_player_id INTEGER,
+    reason TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP,
+    FOREIGN KEY (raid_id) REFERENCES raids(raid_id) ON DELETE CASCADE,
+    FOREIGN KEY (requesting_player_id) REFERENCES players(player_id) ON DELETE CASCADE,
+    FOREIGN KEY (accepting_player_id) REFERENCES players(player_id) ON DELETE CASCADE
+);
+
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_players_discord_id ON players(discord_id);
 CREATE INDEX IF NOT EXISTS idx_characters_player_id ON characters(player_id);
 CREATE INDEX IF NOT EXISTS idx_raids_date ON raids(raid_date);
 CREATE INDEX IF NOT EXISTS idx_roster_raid_id ON roster_assignments(raid_id);
 CREATE INDEX IF NOT EXISTS idx_roster_player_id ON roster_assignments(player_id);
+CREATE INDEX IF NOT EXISTS idx_swap_requests_raid_id ON swap_requests(raid_id);
+CREATE INDEX IF NOT EXISTS idx_swap_requests_status ON swap_requests(status);

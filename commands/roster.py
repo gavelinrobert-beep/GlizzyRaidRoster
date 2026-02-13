@@ -367,6 +367,29 @@ class RosterCommands(commands.Cog):
         
         # Create and send embed
         embed = create_roster_embed(raid, roster_data)
+        
+        # Add pending swaps section
+        pending_swaps = await self.db.get_pending_swap_requests(raid.raid_id)
+        if pending_swaps:
+            all_players = await self.db.get_all_players()
+            swap_text = []
+            for swap in pending_swaps:
+                requesting_player = next((p for p in all_players if p.player_id == swap.requesting_player_id), None)
+                if requesting_player:
+                    swap_info = f"• Request #{swap.request_id}: {requesting_player.player_name}"
+                    if swap.accepting_player_id:
+                        accepting_player = next((p for p in all_players if p.player_id == swap.accepting_player_id), None)
+                        if accepting_player:
+                            swap_info += f" ↔ {accepting_player.player_name}"
+                    swap_text.append(swap_info)
+            
+            if swap_text:
+                embed.add_field(
+                    name=f"🔄 Pending Swaps ({len(pending_swaps)})",
+                    value="\n".join(swap_text),
+                    inline=False
+                )
+        
         await interaction.followup.send(embed=embed)
     
     @app_commands.command(name="roster_list", description="List all upcoming raids")
@@ -384,6 +407,67 @@ class RosterCommands(commands.Cog):
         # Create and send embed
         embed = create_raid_list_embed(raids)
         await interaction.followup.send(embed=embed)
+    
+    @app_commands.command(name="roster_calendar", description="Generate visual roster calendar")
+    @app_commands.describe(weeks="Number of weeks to display (default: 4)")
+    async def roster_calendar(self, interaction: discord.Interaction, weeks: int = 4):
+        """Generate and display a visual roster calendar.
+        
+        Args:
+            interaction: Discord interaction
+            weeks: Number of weeks to display
+        """
+        await interaction.response.defer()
+        
+        # Validate weeks parameter
+        if weeks < 1 or weeks > 12:
+            await interaction.followup.send(embed=create_error_embed(
+                "Weeks parameter must be between 1 and 12."
+            ))
+            return
+        
+        try:
+            # Get upcoming raids with roster data
+            raids_data = await self.db.get_upcoming_raids_with_roster(weeks)
+            
+            if not raids_data:
+                await interaction.followup.send(embed=create_error_embed(
+                    "No upcoming raids found. Create raids with `/roster_create` first."
+                ))
+                return
+            
+            # Get all players for stats column
+            all_players = await self.db.get_all_players()
+            
+            if not all_players:
+                await interaction.followup.send(embed=create_error_embed(
+                    "No players registered. Add players with `/player_add` first."
+                ))
+                return
+            
+            # Generate image
+            from utils.image_generator import generate_roster_calendar
+            image_buffer = generate_roster_calendar(raids_data, all_players)
+            
+            # Create Discord file
+            file = discord.File(image_buffer, filename="roster_calendar.png")
+            
+            # Create embed with image
+            embed = discord.Embed(
+                title=f"📅 Roster Calendar - Next {weeks} Weeks",
+                color=0x5865F2
+            )
+            embed.set_image(url="attachment://roster_calendar.png")
+            embed.set_footer(text=f"Showing {len(raids_data)} raids with {len(all_players)} players")
+            
+            await interaction.followup.send(embed=embed, file=file)
+            logger.info(f"Roster calendar generated for {weeks} weeks by {interaction.user}")
+            
+        except Exception as e:
+            logger.error(f"Failed to generate roster calendar: {e}")
+            await interaction.followup.send(embed=create_error_embed(
+                f"Failed to generate calendar: {str(e)}"
+            ))
 
 
 async def setup(bot: commands.Bot, db: Database):

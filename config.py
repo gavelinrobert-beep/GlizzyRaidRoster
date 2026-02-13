@@ -16,6 +16,11 @@ class Config:
     AUTHORIZED_ROLES: List[str] = os.getenv("AUTHORIZED_ROLES", "Officer,Raid Leader").split(",")
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     
+    # Swap system configuration
+    SWAP_CHANNEL_ID: int = int(os.getenv("SWAP_CHANNEL_ID", "0"))
+    AUTO_APPROVE_SWAPS: bool = os.getenv("AUTO_APPROVE_SWAPS", "false").lower() == "true"
+    SWAP_REQUEST_EXPIRY_HOURS: int = int(os.getenv("SWAP_REQUEST_EXPIRY_HOURS", "48"))
+    
     @classmethod
     def validate(cls) -> bool:
         """Validate that required configuration is present.
