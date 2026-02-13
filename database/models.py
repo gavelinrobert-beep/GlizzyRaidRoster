@@ -44,3 +44,16 @@ class RosterAssignment:
     character_name: str
     position: Optional[int] = None
     status: str = "main"  # main, bench, absent, swap
+
+
+@dataclass
+class SwapRequest:
+    """Represents a swap request between players."""
+    request_id: Optional[int]
+    raid_id: int
+    requesting_player_id: int
+    accepting_player_id: Optional[int] = None
+    reason: Optional[str] = None
+    status: str = "pending"  # pending, accepted, approved, denied, cancelled
+    created_at: Optional[datetime] = None
+    resolved_at: Optional[datetime] = None

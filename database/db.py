@@ -394,3 +394,199 @@ class Database:
             async with db.execute("SELECT COUNT(*) FROM roster_assignments") as cursor:
                 row = await cursor.fetchone()
                 return row[0] if row else 0
+    
+    # Swap request operations
+    async def create_swap_request(self, raid_id: int, requesting_player_id: int, 
+                                 reason: Optional[str] = None) -> Optional[int]:
+        """Create a new swap request.
+        
+        Args:
+            raid_id: Raid ID
+            requesting_player_id: ID of player requesting swap
+            reason: Optional reason for swap
+            
+        Returns:
+            Request ID if successful, None otherwise
+        """
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                cursor = await db.execute(
+                    """INSERT INTO swap_requests 
+                       (raid_id, requesting_player_id, reason, status) 
+                       VALUES (?, ?, ?, 'pending')""",
+                    (raid_id, requesting_player_id, reason)
+                )
+                await db.commit()
+                return cursor.lastrowid
+        except Exception as e:
+            logger.error(f"Failed to create swap request: {e}")
+            return None
+    
+    async def get_swap_request(self, request_id: int) -> Optional['SwapRequest']:
+        """Get a swap request by ID.
+        
+        Args:
+            request_id: Request ID
+            
+        Returns:
+            SwapRequest object if found, None otherwise
+        """
+        from .models import SwapRequest
+        
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(
+                "SELECT * FROM swap_requests WHERE request_id = ?",
+                (request_id,)
+            ) as cursor:
+                row = await cursor.fetchone()
+                if row:
+                    return SwapRequest(
+                        request_id=row['request_id'],
+                        raid_id=row['raid_id'],
+                        requesting_player_id=row['requesting_player_id'],
+                        accepting_player_id=row['accepting_player_id'],
+                        reason=row['reason'],
+                        status=row['status'],
+                        created_at=row['created_at'],
+                        resolved_at=row['resolved_at']
+                    )
+        return None
+    
+    async def get_pending_swap_requests(self, raid_id: Optional[int] = None) -> List['SwapRequest']:
+        """Get all pending swap requests, optionally filtered by raid.
+        
+        Args:
+            raid_id: Optional raid ID to filter by
+            
+        Returns:
+            List of SwapRequest objects
+        """
+        from .models import SwapRequest
+        
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            if raid_id:
+                query = """SELECT * FROM swap_requests 
+                          WHERE status = 'pending' AND raid_id = ?
+                          ORDER BY created_at"""
+                params = (raid_id,)
+            else:
+                query = """SELECT * FROM swap_requests 
+                          WHERE status = 'pending'
+                          ORDER BY created_at"""
+                params = ()
+            
+            async with db.execute(query, params) as cursor:
+                rows = await cursor.fetchall()
+                return [
+                    SwapRequest(
+                        request_id=row['request_id'],
+                        raid_id=row['raid_id'],
+                        requesting_player_id=row['requesting_player_id'],
+                        accepting_player_id=row['accepting_player_id'],
+                        reason=row['reason'],
+                        status=row['status'],
+                        created_at=row['created_at'],
+                        resolved_at=row['resolved_at']
+                    )
+                    for row in rows
+                ]
+    
+    async def update_swap_request_status(self, request_id: int, status: str, 
+                                        accepting_player_id: Optional[int] = None):
+        """Update the status of a swap request.
+        
+        Args:
+            request_id: Request ID
+            status: New status
+            accepting_player_id: Optional ID of accepting player
+        """
+        async with aiosqlite.connect(self.db_path) as db:
+            if accepting_player_id:
+                await db.execute(
+                    """UPDATE swap_requests 
+                       SET status = ?, accepting_player_id = ?, resolved_at = CURRENT_TIMESTAMP
+                       WHERE request_id = ?""",
+                    (status, accepting_player_id, request_id)
+                )
+            else:
+                await db.execute(
+                    """UPDATE swap_requests 
+                       SET status = ?, resolved_at = CURRENT_TIMESTAMP
+                       WHERE request_id = ?""",
+                    (status, request_id)
+                )
+            await db.commit()
+    
+    async def get_player_swap_requests(self, player_id: int) -> List['SwapRequest']:
+        """Get all swap requests for a player (either requesting or accepting).
+        
+        Args:
+            player_id: Player ID
+            
+        Returns:
+            List of SwapRequest objects
+        """
+        from .models import SwapRequest
+        
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(
+                """SELECT * FROM swap_requests 
+                   WHERE requesting_player_id = ? OR accepting_player_id = ?
+                   ORDER BY created_at DESC""",
+                (player_id, player_id)
+            ) as cursor:
+                rows = await cursor.fetchall()
+                return [
+                    SwapRequest(
+                        request_id=row['request_id'],
+                        raid_id=row['raid_id'],
+                        requesting_player_id=row['requesting_player_id'],
+                        accepting_player_id=row['accepting_player_id'],
+                        reason=row['reason'],
+                        status=row['status'],
+                        created_at=row['created_at'],
+                        resolved_at=row['resolved_at']
+                    )
+                    for row in rows
+                ]
+    
+    async def get_upcoming_raids_with_roster(self, weeks: int = 4) -> List[Tuple[Raid, List[Tuple[RosterAssignment, Player, str]]]]:
+        """Get upcoming raids with their complete rosters.
+        
+        Args:
+            weeks: Number of weeks to look ahead
+            
+        Returns:
+            List of tuples (Raid, roster_data)
+        """
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            
+            # Get raids in date order
+            async with db.execute(
+                """SELECT * FROM raids 
+                   WHERE date(raid_date) >= date('now')
+                   ORDER BY raid_date
+                   LIMIT ?""",
+                (weeks * 2,)  # Approximate limit
+            ) as cursor:
+                raid_rows = await cursor.fetchall()
+            
+            result = []
+            for raid_row in raid_rows:
+                raid = Raid(
+                    raid_id=raid_row['raid_id'],
+                    raid_date=raid_row['raid_date'],
+                    raid_time=raid_row['raid_time'],
+                    timezone=raid_row['timezone'],
+                    created_at=raid_row['created_at']
+                )
+                
+                # Get roster for this raid
+                roster_data = await self.get_raid_roster(raid.raid_id)
+                result.append((raid, roster_data))
+            
+            return result
