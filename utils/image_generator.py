@@ -46,10 +46,10 @@ def get_font(size: int) -> ImageFont.FreeTypeFont:
     try:
         # Try to use a common system font
         return ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", size)
-    except:
+    except (OSError, IOError):
         try:
             return ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", size)
-        except:
+        except (OSError, IOError):
             # Fallback to default font
             return ImageFont.load_default()
 

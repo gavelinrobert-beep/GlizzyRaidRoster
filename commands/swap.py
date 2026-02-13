@@ -206,10 +206,6 @@ class SwapCommands(commands.Cog):
             return
         
         # Get requesting player
-        requesting_player = await self.db.get_player_by_discord_id(
-            (await self.db.get_all_players())[0].discord_id  # This needs proper lookup
-        )
-        # Better way to get requesting player
         all_players = await self.db.get_all_players()
         requesting_player = next((p for p in all_players if p.player_id == swap_request.requesting_player_id), None)
         
@@ -227,8 +223,6 @@ class SwapCommands(commands.Cog):
             return
         
         # Get raid
-        raid = await self.db.get_raid_by_date("")  # Need to get raid by ID
-        # Better approach - need helper method
         all_raids = await self.db.get_all_raids()
         raid = next((r for r in all_raids if r.raid_id == swap_request.raid_id), None)
         
@@ -303,7 +297,19 @@ class SwapCommands(commands.Cog):
                         if channel:
                             swap_request = await self.db.get_swap_request(request_id)
                             embed = create_swap_request_embed(swap_request, raid, requesting_player, accepting_player)
-                            await channel.send(embed=embed, content="@Officer Approval needed!")
+                            
+                            # Mention officers if role is configured
+                            mention_text = ""
+                            if Config.AUTHORIZED_ROLES:
+                                guild = interaction.guild
+                                if guild:
+                                    for role_name in Config.AUTHORIZED_ROLES:
+                                        role = discord.utils.get(guild.roles, name=role_name)
+                                        if role:
+                                            mention_text = f"{role.mention} "
+                                            break
+                            
+                            await channel.send(content=f"{mention_text}Approval needed!", embed=embed)
                     except Exception as e:
                         logger.error(f"Failed to send swap notification: {e}")
                 

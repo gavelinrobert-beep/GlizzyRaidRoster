@@ -565,13 +565,14 @@ class Database:
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
             
-            # Get raids in date order
+            # Get raids in date order (limit based on approximate number of raids per week)
+            # Assuming up to 2 raids per week on average
             async with db.execute(
                 """SELECT * FROM raids 
                    WHERE date(raid_date) >= date('now')
                    ORDER BY raid_date
                    LIMIT ?""",
-                (weeks * 2,)  # Approximate limit
+                (weeks * 2,)
             ) as cursor:
                 raid_rows = await cursor.fetchall()
             
