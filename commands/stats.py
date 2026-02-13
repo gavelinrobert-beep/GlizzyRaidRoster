@@ -65,11 +65,8 @@ class StatsCommands(commands.Cog):
         players = await self.db.get_all_players()
         raids = await self.db.get_all_raids()
         
-        # Count total assignments
-        total_assignments = 0
-        for raid in raids:
-            roster_data = await self.db.get_raid_roster(raid.raid_id)
-            total_assignments += len(roster_data)
+        # Count total assignments efficiently
+        total_assignments = await self.db.count_total_assignments()
         
         # Create and send embed
         embed = create_overview_stats_embed(len(players), len(raids), total_assignments)

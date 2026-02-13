@@ -31,7 +31,7 @@ class Raid:
     raid_id: Optional[int]
     raid_date: str
     raid_time: Optional[str] = None
-    timezone: str = "ST"
+    timezone: str = "Server Time"
     created_at: Optional[datetime] = None
 
 

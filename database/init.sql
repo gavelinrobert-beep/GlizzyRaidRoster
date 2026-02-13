@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS raids (
     raid_id INTEGER PRIMARY KEY AUTOINCREMENT,
     raid_date TEXT NOT NULL,
     raid_time TEXT,
-    timezone TEXT DEFAULT 'ST',
+    timezone TEXT DEFAULT 'Server Time',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(raid_date)
 );

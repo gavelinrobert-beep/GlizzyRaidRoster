@@ -210,7 +210,7 @@ class Database:
     
     # Raid operations
     async def create_raid(self, raid_date: str, raid_time: Optional[str] = None, 
-                         timezone: str = "ST") -> Optional[int]:
+                         timezone: str = "Server Time") -> Optional[int]:
         """Create a new raid event.
         
         Args:
@@ -383,3 +383,14 @@ class Database:
                     )
                     for row in rows
                 ]
+    
+    async def count_total_assignments(self) -> int:
+        """Count total number of roster assignments.
+        
+        Returns:
+            Total count of assignments
+        """
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute("SELECT COUNT(*) FROM roster_assignments") as cursor:
+                row = await cursor.fetchone()
+                return row[0] if row else 0

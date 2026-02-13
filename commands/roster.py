@@ -32,10 +32,10 @@ class RosterCommands(commands.Cog):
     @app_commands.describe(
         date="Raid date (YYYY-MM-DD or flexible format)",
         time="Raid time (optional)",
-        timezone="Timezone (default: ST)"
+        timezone="Timezone (default: Server Time)"
     )
     async def roster_create(self, interaction: discord.Interaction, 
-                           date: str, time: str = None, timezone: str = "ST"):
+                           date: str, time: str = None, timezone: str = "Server Time"):
         """Create a new raid event.
         
         Args:

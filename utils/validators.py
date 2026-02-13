@@ -15,8 +15,9 @@ def validate_date(date_string: str) -> Optional[str]:
         Normalized date string (YYYY-MM-DD) or None if invalid
     """
     try:
-        # Try to parse the date using dateutil
-        parsed_date = date_parser.parse(date_string, fuzzy=True)
+        # Try to parse the date using dateutil with dayfirst=True for DD/MM/YYYY format
+        # This prevents ambiguous dates like "01/02/2024" from being misinterpreted
+        parsed_date = date_parser.parse(date_string, fuzzy=True, dayfirst=True)
         # Return in standardized format
         return parsed_date.strftime("%Y-%m-%d")
     except (ValueError, TypeError):

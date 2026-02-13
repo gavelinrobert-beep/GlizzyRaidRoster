@@ -53,7 +53,7 @@ pip install -r requirements.txt
    - Message Content Intent
 6. Click "Reset Token" and copy your bot token (keep this secret!)
 7. Go to "OAuth2" > "URL Generator"
-8. Select scopes: \`bot\` and \`applications.commands\`
+8. Select scopes: `bot` and `applications.commands`
 9. Select bot permissions:
    - Read Messages/View Channels
    - Send Messages
@@ -69,7 +69,7 @@ pip install -r requirements.txt
    cp .env.example .env
    ```
 
-2. Edit \`.env\` with your configuration:
+2. Edit `.env` with your configuration:
    ```env
    DISCORD_TOKEN=your_discord_bot_token_here
    GUILD_ID=your_guild_id_here
@@ -101,24 +101,24 @@ For a complete list of commands and usage examples, see the [Commands Documentat
 ### Quick Command Overview
 
 **Player Management:**
-- \`/player_add\` - Register a new player
-- \`/player_addchar\` - Add a character to a player
-- \`/player_stats\` - View player statistics
-- \`/player_list\` - List all players
+- `/player_add` - Register a new player
+- `/player_addchar` - Add a character to a player
+- `/player_stats` - View player statistics
+- `/player_list` - List all players
 
 **Roster Management:**
-- \`/roster_create\` - Create a new raid
-- \`/roster_add\` - Add player to raid
-- \`/roster_remove\` - Remove player from raid
-- \`/roster_bench\` - Move player to bench
-- \`/roster_absence\` - Mark player as absent
-- \`/roster_swap\` - Record a swap between players
-- \`/roster_view\` - Display raid roster
-- \`/roster_list\` - List all raids
+- `/roster_create` - Create a new raid
+- `/roster_add` - Add player to raid
+- `/roster_remove` - Remove player from raid
+- `/roster_bench` - Move player to bench
+- `/roster_absence` - Mark player as absent
+- `/roster_swap` - Record a swap between players
+- `/roster_view` - Display raid roster
+- `/roster_list` - List all raids
 
 **Statistics:**
-- \`/stats_player\` - Player statistics
-- \`/stats_overview\` - Guild overview
+- `/stats_player` - Player statistics
+- `/stats_overview` - Guild overview
 
 ## Database Schema
 
@@ -136,18 +136,18 @@ For detailed schema information, see [Database Documentation](docs/DATABASE.md).
 1. Check that the bot is online (green status in Discord)
 2. Verify the bot has proper permissions in your server
 3. Try kicking and re-inviting the bot with the correct permissions
-4. Check \`bot.log\` for errors
+4. Check `bot.log` for errors
 
 ### Commands don't appear in Discord
-1. Make sure you've set the correct \`GUILD_ID\` in \`.env\`
+1. Make sure you've set the correct `GUILD_ID` in `.env`
 2. Wait a few minutes for commands to sync
 3. Try restarting the bot
-4. Check that you invited the bot with \`applications.commands\` scope
+4. Check that you invited the bot with `applications.commands` scope
 
 ### "Configuration validation failed" error
-- Ensure \`.env\` file exists and has valid values
-- Check that \`DISCORD_TOKEN\` is set correctly
-- Verify \`GUILD_ID\` is a valid number
+- Ensure `.env` file exists and has valid values
+- Check that `DISCORD_TOKEN` is set correctly
+- Verify `GUILD_ID` is a valid number
 
 ## Contributing
 
