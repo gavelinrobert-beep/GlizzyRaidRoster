@@ -297,6 +297,7 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
         x_offset += RAIDS_COUNT_COL_WIDTH
         
         # Benches count (green background, show "-" for zero)
+        # Note: total_benches is always >= 0 based on database schema DEFAULT 0
         benches_text = str(player.total_benches) if player.total_benches > 0 else "-"
         draw_bordered_cell(draw, x_offset, y_offset, BENCHES_COUNT_COL_WIDTH, PLAYER_ROW_HEIGHT,
                           benches_text, GREEN_BG, TEXT_COLOR, stats_font)
@@ -366,7 +367,7 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
         # Absences column
         absence_x = side_panel_x
         draw_bordered_cell(draw, absence_x, side_panel_y, ABSENCES_COL_WIDTH, ROSTER_GRID_CELL_HEIGHT,
-                          "absences", WHITE_BG, TEXT_COLOR, cell_font)
+                          "Absences", WHITE_BG, TEXT_COLOR, cell_font)
         
         for idx, (assignment, player, class_name) in enumerate(absent_roster[:total_rows - 1]):
             cell_y = side_panel_y + ((idx + 1) * ROSTER_GRID_CELL_HEIGHT)
@@ -383,7 +384,7 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
         # Benches column
         bench_x = side_panel_x + ABSENCES_COL_WIDTH
         draw_bordered_cell(draw, bench_x, side_panel_y, BENCHES_COL_WIDTH, ROSTER_GRID_CELL_HEIGHT,
-                          "benches:", WHITE_BG, TEXT_COLOR, cell_font)
+                          "Benches:", WHITE_BG, TEXT_COLOR, cell_font)
         
         for idx, (assignment, player, class_name) in enumerate(bench_roster[:total_rows - 1]):
             cell_y = side_panel_y + ((idx + 1) * ROSTER_GRID_CELL_HEIGHT)
@@ -404,9 +405,9 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
         
         # Swaps header with two sub-headers
         draw_bordered_cell(draw, swap_x, side_panel_y, swap_col_width, ROSTER_GRID_CELL_HEIGHT,
-                          "swaps out:", WHITE_BG, TEXT_COLOR, cell_font)
+                          "Swaps Out:", WHITE_BG, TEXT_COLOR, cell_font)
         draw_bordered_cell(draw, swap_x + swap_col_width, side_panel_y, swap_col_width, ROSTER_GRID_CELL_HEIGHT,
-                          "swaps in:", WHITE_BG, TEXT_COLOR, cell_font)
+                          "Swaps In:", WHITE_BG, TEXT_COLOR, cell_font)
         
         for idx, (assignment, player, class_name) in enumerate(swap_roster[:total_rows - 1]):
             cell_y = side_panel_y + ((idx + 1) * ROSTER_GRID_CELL_HEIGHT)
@@ -416,7 +417,8 @@ def generate_roster_calendar(raids_data: List[Tuple[object, List[Tuple[object, o
             # Swapping out
             draw_bordered_cell(draw, swap_x, cell_y, swap_col_width, ROSTER_GRID_CELL_HEIGHT,
                              char_name, bg_color, TEXT_COLOR, cell_font)
-            # Swapping in (would need additional data structure, leave empty for now)
+            # Swapping in (empty - swap partner data not stored in current data model)
+            # TODO: Add swap partner tracking to database model for full swap visualization
             draw_bordered_cell(draw, swap_x + swap_col_width, cell_y, swap_col_width, ROSTER_GRID_CELL_HEIGHT,
                              "", WHITE_BG, TEXT_COLOR, cell_font)
         
