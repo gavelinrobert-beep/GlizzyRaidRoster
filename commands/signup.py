@@ -1,21 +1,27 @@
-class SignupCommand:
-    def __init__(self):
-        self.signups = []  # List to store player signups
+import discord
+from discord.ext import commands
+import sqlite3
 
-    def signup(self, character_name, player_class, spec_role):
-        # Create a player signup entry
-        signup_entry = {
-            'character_name': character_name,
-            'class': player_class,
-            'spec/role': spec_role
-        }
-        self.signups.append(signup_entry)
-        return f'{character_name} has signed up for raids as a {player_class} ({spec_role}).'
+# Database setup
+conn = sqlite3.connect('roster.db')
+c = conn.cursor()
+c.execute('CREATE TABLE IF NOT EXISTS players (character_name TEXT PRIMARY KEY, class TEXT, spec_role TEXT)')
+conn.commit()
 
-    def get_signups(self):
-        return self.signups
+# Bot setup
+bot = commands.Bot(command_prefix='/')
 
-# Example usage:
-# command = SignupCommand()
-# print(command.signup('Thorin', 'Warrior', 'Tank'))
-# print(command.get_signups())
+@bot.slash_command(name='signup', description='Sign up as a player for the raid')
+async def signup(ctx, character_name: str, player_class: str, spec_role: str):
+    c.execute('SELECT * FROM players WHERE character_name = ?', (character_name,))
+    if c.fetchone() is not None:
+        await ctx.respond(f"Character `{character_name}` is already signed up!")
+        return
+
+    c.execute('INSERT INTO players (character_name, class, spec_role) VALUES (?, ?, ?)', 
+              (character_name, player_class, spec_role))
+    conn.commit()
+    await ctx.respond(f"Successfully signed up `{character_name}` with class `{player_class}` and role `{spec_role}`!")
+
+# Run the bot
+bot.run('YOUR_BOT_TOKEN')
